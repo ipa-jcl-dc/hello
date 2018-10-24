@@ -161,10 +161,17 @@ int main(int argc,char** argv)
     cout<<"tsdf+mc..."<<endl;
     SurfaceRecontruction sr(config,depth2marker[0][0]);
     VolumeData volume(config.volume_resolution_,config.voxel_size_);
-    for (int i=0;i<num_devices;i++)
+    for (int dev=0;dev<num_devices;dev++)
     {
-      sr.volumeItegration(volume,depth_image_vec[i],depth2marker[i],
-                          pose_flags[i],depth_cam_params[i],i);
+      //      sr.volumeItegration(volume,depth_image_vec[i],depth2marker[i],pose_flags[i],depth_cam_params[i],i);
+      std::ostringstream s;    s<<dev;
+      for(auto i=0;i<depth_image_vec[dev].size();i++)
+      {
+        std::ostringstream ss;    ss<<i;
+        if(pose_flags[dev][i] ==0) continue;
+        std::cout<<"fusing "<<dev<<"-"<<i<<std::endl;
+        sr.updateTSDFvolume(volume,depth_image_vec[dev][i],depth2marker[dev][i],depth_cam_params[dev]);
+      }
     }
     sr.extractTSDF(volume);
     volume.release();

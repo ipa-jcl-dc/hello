@@ -58,6 +58,7 @@ std::string charuco_file;
 std::vector<std::vector<Eigen::Matrix4f>> camera2marker; //vector stores matrix from camera to board
 std::vector<std::vector<int>> pose_flags; //vector stores successful found pose of aruco board(0:not found, 1: found)
 std::string data_path;
+Configuration config;
 
 void collect360Degrees(const int num_captures,RealSense realsense)
 {
@@ -124,10 +125,12 @@ void collect360Degrees(const int num_captures,RealSense realsense)
       camera2marker[i].push_back(camera_to_marker);
       //turn off the laser used
       realsense.turnOffLaser(view);
-      std::ostringstream s; s<<i;
-      cv::imwrite(data_path+"color-frame-"+s.str()+"-"+ss.str()+".png",color_image_vec[i][n]);
-      cv::imwrite(data_path+"depth-frame-"+s.str()+"-"+ss.str()+".png",depth_image_vec[i][n]);
-      pcl::io::savePCDFile(data_path+"cloud_"+s.str()+"-"+ss.str()+".pcd",*cloud_vec[i][n],true);
+      if(config.debug_) {
+        std::ostringstream s; s<<i;
+        cv::imwrite(data_path+"color-frame-"+s.str()+"-"+ss.str()+".png",color_image_vec[i][n]);
+        cv::imwrite(data_path+"depth-frame-"+s.str()+"-"+ss.str()+".png",depth_image_vec[i][n]);
+        pcl::io::savePCDFile(data_path+"cloud_"+s.str()+"-"+ss.str()+".pcd",*cloud_vec[i][n],true);
+      }
       i++;
     }
 
@@ -146,7 +149,6 @@ int main(int argc, char *argv[])
   //ChAruco board parameters
   //    charuco_file = "../config/charuco_board.xml";
   charuco_file = "src/cob_object_perception_experimental/config/charuco_board.xml";
-  Configuration config;
   Timer timer;
   //Set angular speep for station, max 14.5, default 12
   webserver->setAngularSpeed(14.0);
@@ -212,7 +214,7 @@ int main(int argc, char *argv[])
   //        //Transform translation
   //        projectTransformTranslationsToPlane(plane_coeffs,camera2marker,pose_flags); //project the translations onto the plane
   //    }
-    timer.tok_();
+  timer.tok_();
 
   std::vector<std::vector<Eigen::Matrix4f>> depth2marker; //vector stores matrix from depth camera to board
   depth2marker.resize(camera2marker.size());
@@ -421,7 +423,6 @@ int main(int argc, char *argv[])
     pcl::io::saveOBJFile(data_path+"textured_atlas_opt.obj",tm.output_mesh);
     timer.tok_();
   }
-
 
   return 0;
 }
